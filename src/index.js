@@ -47,8 +47,11 @@ function onSearchClick (e) {
         return
     }
     fetchPixabay(value).then(({data}) => {
-        if(data.totalHits === 0) {
-            return Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.")
+        if (data.hits.length < 40) {
+            renderGallery(data)
+            loadMore.classList.add("visually-hidden")
+        } else if(data.totalHits === 0) {
+            Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.")
         } else {
             renderGallery(data)
             loadMore.classList.remove("visually-hidden")
@@ -61,6 +64,10 @@ function onMoreButtonClick (e) {
     value = form.searchQuery.value.trim()
     fetchPixabay(value, page).then(({data}) => {
         renderGallery(data)
+        console.log(data.hits.length)
+        if (data.hits.length === 0) {
+            return loadMore.classList.add("visually-hidden")
+        }
         loadMore.classList.remove("visually-hidden")
     });
 }
