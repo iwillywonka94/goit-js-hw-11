@@ -5,9 +5,15 @@ import { fetchPixabay } from './scripts/fetchPixabay';
 const form = document.querySelector("#search-form");
 const gallery = document.querySelector(".gallery");
 const loadMore = document.querySelector(".load-more");
+
 let value = ""
-let page = 1
+let page = 1;
+
 loadMore.classList.add("visually-hidden")
+
+form.addEventListener("submit", onSearchClick) 
+loadMore.addEventListener("click", onMoreButtonClick)
+
 
 function renderGallery (value) {
     const markUp = value.hits.map((event) => 
@@ -31,37 +37,30 @@ function renderGallery (value) {
     gallery.insertAdjacentHTML("beforeend", markUp)
 }
 
-form.addEventListener("submit", onSearchClick) 
-
-
-    function onSearchClick (e) {
+function onSearchClick (e) {
     e.preventDefault();
     value = form.searchQuery.value.trim()
-    loadMore.classList.remove("visually-hidden")
     gallery.innerHTML=""
-
     if(!value) {
         Notiflix.Notify.failure("To start, enter something")
         loadMore.classList.add("visually-hidden")
         return
     }
-
     fetchPixabay(value).then(({data}) => {
         if(data.totalHits === 0) {
-
-            return Notiflix.Notify.failure("Pleas stop be shitty")
+            return Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.")
         } else {
-            Notiflix.Notify.success("Good job")
             renderGallery(data)
+            loadMore.classList.remove("visually-hidden")
         }
     })
 }
 
-loadMore.addEventListener("click", (e) => {
+function onMoreButtonClick (e) {
     page = page + 1
+    value = form.searchQuery.value.trim()
     fetchPixabay(value, page).then(({data}) => {
         renderGallery(data)
         loadMore.classList.remove("visually-hidden")
     });
-})
-
+}
