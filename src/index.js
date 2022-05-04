@@ -1,5 +1,6 @@
 import Notiflix from 'notiflix';
 import { fetchPixabay } from './scripts/fetchPixabay';
+import './sass/main.scss';
 
 const form = document.querySelector("#search-form");
 const gallery = document.querySelector(".gallery");
