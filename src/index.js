@@ -2,9 +2,11 @@ import Notiflix from 'notiflix';
 import { fetchPixabay } from './scripts/fetchPixabay';
 import './sass/main.scss';
 
+
 const form = document.querySelector("#search-form");
 const gallery = document.querySelector(".gallery");
 const loadMore = document.querySelector(".load-more");
+const MAX_SIZE_PAGES = 40;
 
 let value = ""
 let page = 1;
@@ -33,7 +35,8 @@ function renderGallery (value) {
                 <b>Downloads: ${event.downloads}</b>
             </p>
         </div>
-    </div>`).join("")
+    </div>`
+    ).join("")
     gallery.insertAdjacentHTML("beforeend", markUp)
 }
 
@@ -46,28 +49,28 @@ function onSearchClick (e) {
         loadMore.classList.add("visually-hidden")
         return
     }
-    fetchPixabay(value).then(({data}) => {
-        if (data.hits.length < 40) {
-            renderGallery(data)
-            loadMore.classList.add("visually-hidden")
-        } else if(data.totalHits === 0) {
-            Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.")
-        } else {
-            renderGallery(data)
+    page = 1;
+    getData(value, page, true);
+}
+
+async function getData (value, page, showMessage = false) {
+    loadMore.classList.add("visually-hidden")
+    const {data} = await fetchPixabay(value, page)
+        const dataLength = data.hits.length;
+        if (!dataLength) {
+            return Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.");
+        }
+        if (dataLength === MAX_SIZE_PAGES && Math.floor(data.totalHits / MAX_SIZE_PAGES) >= page) {
             loadMore.classList.remove("visually-hidden")
         }
-    })
+        if (showMessage) {
+            Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`)
+        }
+        renderGallery(data)
 }
 
 function onMoreButtonClick (e) {
-    page = page + 1
+    page += 1
     value = form.searchQuery.value.trim()
-    fetchPixabay(value, page).then(({data}) => {
-        renderGallery(data)
-        console.log(data.hits.length)
-        if (data.hits.length === 0) {
-            return loadMore.classList.add("visually-hidden")
-        }
-        loadMore.classList.remove("visually-hidden")
-    });
+    getData(value, page);
 }
